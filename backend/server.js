@@ -1,17 +1,17 @@
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2");
-const dotenv = require("dotenv");
-dotenv.config();
+const config=require('./src/config/config.js').development;
 const app = express();
 app.use(express.json());
 app.use(cors());
+const PORT = 5000;
 
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: config.host,
+  user: config.user,
+  password: config.password,
+  database: config.database,
 });
 
 db.connect((err) => {
@@ -39,7 +39,7 @@ app.post("/api/contact", (req, res) => {
 
 
 app.get("/api/about", (req, res) => {
-    const sql = "SELECT * FROM detail ORDER BY id DESC LIMIT 1";
+    const sql = "SELECT * FROM detail ORDER BY id ";
     db.query(sql, (err, results) => {
       if (err) {
         console.error("DB Fetch Error:", err);
@@ -49,5 +49,42 @@ app.get("/api/about", (req, res) => {
       }
     });
   });
-  
-app.listen(5000, () => console.log("Server running on port 5000"));
+
+
+  app.delete("/api/about/:id", (req,res)=>{
+    const id=req.params.id;
+    const querydel="DELETE FROM detail WHERE id=?";
+
+    db.query(querydel,[id],(err,result)=>{
+      if(err){
+        console.error("Delete Error:",err);
+        res.status(500).json(console.error("Error deleting data",err.message));
+      }
+      else{
+        res.status(200).json(result);
+      }
+
+    })
+
+  });
+
+  app.put("/api/about/:id",(req,res)=>{
+    const id=req.params.id;
+    const {name,email,num,address}=req.body;
+    const queryup="Update detail set name=?,email=?,num=?,address=? where id=?";
+    const values=[name,email,num,address,id];
+
+    db.query(queryup,values,(err,result)=>{
+      if(err){
+        console.error("Update Error:",err);
+        res.status(500).json({message:"Error updating data",err});
+      }
+      else{
+        res.status(200).json(result);
+      }
+    })
+
+  });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
