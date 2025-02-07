@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 function Contact() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -13,20 +13,15 @@ function Contact() {
     const userData = { name, email, num, address };
 
     try {
-      const response = await fetch("http://localhost:5000/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
-
-      const result = await response.json();
-      console.log("Server Response:", result);
-
-      if (response.ok) navigate("/about");
-      else alert("Error: " + result.message);
+      const response = await axios.post("http://localhost:5000/api/contact", userData);
+      alert(response.data.message);
+      setName("");
+      setEmail("");
+      setNum("");
+      setAddress("");
+      navigate("/about");
     } catch (error) {
       console.error("Fetch Error:", error);
-      alert("Failed to connect to the server");
     }
   };
 
